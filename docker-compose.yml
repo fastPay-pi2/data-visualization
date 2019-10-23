@@ -1,0 +1,61 @@
+version: "3"
+
+services:
+  data-visualization:
+    build:
+      context: .
+      dockerfile: ./docker/script.Dockerfile
+    container_name: data_visualization
+    networks:
+      - fastpay-network
+    depends_on:
+      - elasticsearch
+    environment:
+      - PURCHASE_API=http://purchase_api:5000/
+      - PRODUCTS_API=http://products_api:3000/
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      context: .
+      dockerfile: ./docker/elasticsearch.Dockerfile
+    # restart: unless-stopped
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - esbackup:/usr/share/elasticsearch/backup
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - fastpay-network
+
+  kibana:
+    container_name: kibana
+    build:
+      context: .
+      dockerfile: ./docker/kibana.Dockerfile
+    # restart: unless-stopped
+    ports:
+      - 5601:5601
+    environment:
+      - SERVER_PORT=5601
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - KIBANA_URL=http://kibana:5601
+    depends_on:
+      - elasticsearch
+    networks:
+      - fastpay-network
+
+  
+networks:
+  fastpay-network:
+    external: true
+
+volumes:
+  esbackup:
+  esdata:
+    driver: local
