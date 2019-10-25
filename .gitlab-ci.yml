@@ -11,18 +11,61 @@ code_style:
   script:
     - flake8
 
-build-app:
+build-elastic:
   image: docker:latest
   stage: build
   services:
     - docker:dind
   variables:
-    IMAGE_NAME: "app"
+    IMAGE_NAME: "elasticsearch"
+    CI_REGISTRY_IMAGE: "registry.gitlab.com/fastpay-pi2/data-visualization"
+    discovery.type: single-node
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN registry.gitlab.com
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f ./docker/elasticsearch.Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+  tags:
+    - docker
+  only:
+    - master
+
+build-kibana:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    IMAGE_NAME: "kibana"
+    SERVER_PORT: 5601
+    ELASTICSEARCH_URL: http://elasticsearch:9200
+    KIBANA_URL: http://kibana:5601
     CI_REGISTRY_IMAGE: "registry.gitlab.com/fastpay-pi2/data-visualization"
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN registry.gitlab.com
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f ./docker/Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f ./docker/kibana.Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+  tags:
+    - docker
+  only:
+    - master
+
+build-script:
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    PURCHASE_API: http://purchase_api:5000/
+    PRODUCTS_API: http://products_api:3000/
+    ELASTICSEARCH_URL: http://elasticsearch:9200
+    IMAGE_NAME: "script"
+    CI_REGISTRY_IMAGE: "registry.gitlab.com/fastpay-pi2/data-visualization"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN registry.gitlab.com
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f ./docker/script.Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
   tags:
     - docker
