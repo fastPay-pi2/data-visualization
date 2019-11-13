@@ -20,8 +20,7 @@ settings = {
         "number_of_replicas": 0
     },
     "mappings": {
-      "purchases": {
-        "mappings": {
+      "purchase": {
           "properties": {
             "cart": {
               "type": "text",
@@ -64,6 +63,9 @@ settings = {
                     }
                   }
                 },
+                "productid": {
+                  "type": "long"
+                },
                 "productimage": {
                   "type": "text",
                   "fields": {
@@ -84,6 +86,9 @@ settings = {
                 },
                 "productprice": {
                   "type": "float"
+                },
+                "quantity": {
+                  "type": "long"
                 },
                 "rfid": {
                   "type": "text",
@@ -115,14 +120,21 @@ settings = {
               }
             },
             "user_id": {
-              "type": "long"
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "value": {
+              "type": "float",
             }
           }
         }
       }
     }
-}
-
 
 param = {
     "include_type_name": "true"
@@ -134,7 +146,8 @@ if __name__ == '__main__':
     if args.task == 'setup':
         try:
             if not es.indices.exists(index_name):
-                logger.debug(es.indices.create(index=index_name, ignore=400,
+                logger.debug(es.indices.create(index=index_name,
+                                               ignore=400,
                                                params=param,
                                                body=settings))
                 logger.info('Created Index')

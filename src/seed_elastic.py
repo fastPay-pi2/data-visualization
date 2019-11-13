@@ -39,8 +39,9 @@ if __name__ == '__main__':
                                         purchase_data[i]['date'],
                                         '%Y-%m-%d  %H:%M:%S.%f').
                                         strftime('%Y-%m-%d'))
+            purchase_data[i]['value'] = float(purchase_data[i]['value'])
             res = es.index(index='purchases',
-                           doc_type='all_purchases',
+                           doc_type='purchase',
                            body=item)
         except ValueError:
             purchase_data[i]['date'] = (datetime.strptime(
@@ -48,5 +49,5 @@ if __name__ == '__main__':
                                         '%Y-%m-%d  %H:%M:%S').
                                         strftime('%Y-%m-%d'))
             res = es.index(index='purchases',
-                           doc_type='all_purchases',
+                           doc_type='purchase',
                            body=item)
