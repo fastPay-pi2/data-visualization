@@ -19,9 +19,7 @@ build-elastic:
   variables:
     IMAGE_NAME: "elasticsearch"
     CI_REGISTRY_IMAGE: "registry.gitlab.com/fastpay-pi2/data-visualization"
-    discovery.type: single-node
   before_script:
-    - export discovery.type=single-node
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN registry.gitlab.com
   script:
     - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest -f ./docker/elasticsearch.Dockerfile .
